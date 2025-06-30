@@ -1,0 +1,226 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Kiểm Soát Sinh Vật Nhỏ Trong Hồ Tép</title>
+    <style>
+        body {
+            font-family: 'Verdana', sans-serif;
+            margin: 20px;
+            background-color: #e6f0e6;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 25px;
+            border: 4px solid #228B22;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            text-align: center;
+            color: #228B22;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            font-size: 16px;
+            text-align: center;
+            color: #32CD32;
+            margin-bottom: 25px;
+            font-style: italic;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 25px;
+            background: linear-gradient(180deg, #ffffff, #e6f0e6);
+        }
+        th, td {
+            border: 2px solid #228B22;
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+        th {
+            background-color: #228B22;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        tr:nth-child(even) {
+            background-color: #f0fff0;
+        }
+        tr:hover {
+            background-color: #d4f4d4;
+        }
+        .warning {
+            color: #ff4500;
+            font-weight: bold;
+        }
+        .tips {
+            background-color: #32CD32;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            margin-top: 20px;
+        }
+        .tips h3 {
+            margin-top: 0;
+            color: #ffffff;
+            font-size: 18px;
+            text-transform: uppercase;
+        }
+        .tips li {
+            margin-bottom: 8px;
+            font-size: 13px;
+            list-style-type: square;
+        }
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: url('https://img.icons8.com/fluency/48/000000/shrimp.png') no-repeat center;
+            background-size: contain;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+        .description-img {
+            width: 100px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: 5px;
+        }
+        @media print {
+            body {
+                margin: 0;
+                background: none;
+            }
+            .container {
+                box-shadow: none;
+                border: none;
+            }
+            table {
+                background: none;
+            }
+            tr:nth-child(even) {
+                background-color: #f0fff0;
+            }
+            .description-img {
+                width: 80px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="icon"></span> BẢNG KIỂM SOÁT SINH VẬT NHỎ TRONG HỒ TÉP</h1>
+        <h2>Thiên địch & Biện pháp an toàn - Phù hợp tép ong, tép màu, tép Sulawesi</h2>
+        <table>
+            <tr>
+                <th>Nhóm sinh vật</th>
+                <th>Ví dụ</th>
+                <th>Ảnh mô tả</th>
+                <th>Biện pháp kiểm soát</th>
+                <th>Lưu ý quan trọng</th>
+            </tr>
+            <tr>
+                <td>Chân chèo</td>
+                <td><i>Cyclops spp.</i></td>
+                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Cyclops_%28copepod%29.jpg/1024px-Cyclops_%28copepod%29.jpg" alt="Cyclops spp." class="description-img"></td>
+                <td>Hydra</td>
+                <td class="warning">Cẩn thận: Hydra có thể ăn tép con!</td>
+            </tr>
+            <tr>
+                <td>Chân ngành</td>
+                <td><i>Daphnia</i>, <i>Moina</i></td>
+                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Daphnia_magna.jpg/1024px-Daphnia_magna.jpg" alt="Daphnia" class="description-img"></td>
+                <td>Tép lớn, cá ăn lọc (nếu không nuôi tép)</td>
+                <td>Tép lớn ăn trứng/ấu trùng.</td>
+            </tr>
+            <tr>
+                <td>Luân trùng</td>
+                <td><i>Brachionus</i>, <i>Philodina</i></td>
+                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Brachionus_calyciflorus.jpg/1024px-Brachionus_calyciflorus.jpg" alt="Brachionus" class="description-img"></td>
+                <td>UV hoặc ozone (1-2 giờ/ngày)</td>
+                <td>UV an toàn nếu dùng đúng, công suất thấp.</td>
+            </tr>
+            <tr>
+                <td>Nguyên sinh</td>
+                <td><i>Paramecium</i>, <i>Tetrahymena</i></td>
+                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Paramecium_caudatum_Ehrenberg%2C_1838.jpg/1024px-Paramecium_caudatum_Ehrenberg%2C_1838.jpg" alt="Paramecium" class="description-img"></td>
+                <td>Tép con, vi nấm ký sinh</td>
+                <td class="warning">Ưu tiên UV, tránh hóa chất!</td>
+            </tr>
+            <tr>
+                <td>Vi sinh tự do</td>
+                <td>Biofilm xấu, vi khuẩn dị dưỡng</td>
+                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Biofilm.jpg/1024px-Biofilm.jpg" alt="Biofilm" class="description-img"></td>
+                <td>Vi sinh có lợi (<i>Bacillus</i>, <i>Lactobacillus</i>)</td>
+                <td>Dùng định kỳ sau thay nước.</td>
+            </tr>
+            <tr>
+                <td>Vi khuẩn gây hại</td>
+                <td><i>Vibrio</i>, <i>Aeromonas</i></td>
+                <td><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Vibrio_cholerae_01.jpg/1024px-Vibrio_cholerae_01.jpg" alt="Vibrio" class="description-img"></td>
+                <td><i>Bdellovibrio</i>, men vi sinh mạnh</td>
+                <td>Tăng đề kháng hệ vi sinh tự nhiên.</td>
+            </tr>
+        </table>
+        <div class="tips">
+            <h3>MẸO NHANH</h3>
+            <ul>
+                <li><b>Lọc mạnh + hút đáy</b>: Loại 80% sinh vật không mong muốn.</li>
+                <li><b>Vi sinh có lợi</b>: Lá chắn tự nhiên cho hồ tép.</li>
+                <li><b>UV 1-2 giờ/ngày</b>: An toàn, hiệu quả với công suất thấp (5-10W).</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
