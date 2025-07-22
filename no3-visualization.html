@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trực quan hóa Chu trình Nitrogen (Tối ưu cho Di động & PC)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f0f9ff; /* sky-50 */
+        }
+        .cycle-node {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 0.75rem; cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.1);
+            width: 90%; max-width: 320px; z-index: 10;
+        }
+        .cycle-node:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        /* Desktop-specific styles */
+        @media (min-width: 768px) {
+            .cycle-node {
+                position: absolute;
+                width: auto; /* Revert to auto width on desktop */
+            }
+        }
+        .arrow {
+            position: absolute; stroke: #60a5fa; stroke-width: 2.5; fill: none;
+            marker-end: url(#arrowhead);
+            transition: d 0.3s ease;
+        }
+        .modal { transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-content { transition: transform 0.3s ease; }
+        .loader {
+            border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%;
+            width: 30px; height: 30px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Scrollbar styling for modals */
+        .modal-scrollable-content {
+            max-height: 65vh;
+            overflow-y: auto;
+            padding-right: 1rem; /* Add padding to avoid content hiding behind scrollbar */
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-sky-700">Chu trình Nitrogen trong Hồ thủy sinh</h1>
+            <p class="mt-2 text-lg text-slate-600">Nâng cấp với Trợ lý AI Gemini</p>
+        </header>
+
+        <div id="visualization" class="relative flex flex-col items-center gap-4 md:h-[600px] md:max-w-4xl mx-auto">
+            
+            <svg id="arrow-svg" width="100%" height="100%" class="hidden md:block absolute top-0 left-0 z-0">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#60a5fa" />
+                    </marker>
+                </defs>
+                <path id="arrow-waste-ammonia" class="arrow"></path>
+                <path id="arrow-ammonia-nitrite" class="arrow"></path>
+                <path id="arrow-nitrite-nitrate" class="arrow"></path>
+                <path id="arrow-nitrate-plant" class="arrow"></path>
+                <path id="arrow-nitrate-gas" class="arrow"></path>
+            </svg>
+
+            <!-- Cycle Nodes -->
+            <div id="node-waste" class="cycle-node bg-amber-100 border-amber-300 md:w-[150px] md:top-[15%] md:left-[10%]">
+                <div class="text-2xl">🗑️</div><h3 class="font-bold text-amber-800">Chất thải hữu cơ</h3><p class="text-sm text-amber-700">Thức ăn thừa, phân cá...</p>
+            </div>
+            <div class="text-3xl text-sky-500 block md:hidden">↓</div>
+            <p class="text-sm text-blue-600 block md:hidden">Vi khuẩn dị dưỡng</p>
+            <div id="node-ammonia" class="cycle-node bg-red-100 border-red-300 md:w-[160px] md:top-[5%] md:left-1/2 md:-translate-x-1/2">
+                <div class="text-2xl">☣️</div><h3 class="font-bold text-red-800">Amoniac / Amoni</h3><p class="text-sm text-red-700">(NH₃ / NH₄⁺) - Độc</p>
+            </div>
+            <div class="text-3xl text-sky-500 block md:hidden">↓</div>
+            <p class="text-sm text-blue-600 block md:hidden">Vi khuẩn <em>Nitrosomonas</em></p>
+            <div id="node-nitrite" class="cycle-node bg-orange-100 border-orange-300 md:w-[150px] md:top-[35%] md:right-[10%]">
+                <div class="text-2xl">⚠️</div><h3 class="font-bold text-orange-800">Nitrit (NO₂⁻)</h3><p class="text-sm text-orange-700">Rất độc</p>
+            </div>
+            <div class="text-3xl text-sky-500 block md:hidden">↓</div>
+            <p class="text-sm text-blue-600 block md:hidden">Vi khuẩn <em>Nitrobacter</em></p>
+            <div id="node-nitrate" class="cycle-node bg-teal-100 border-teal-300 md:w-[150px] md:bottom-[20%] md:left-1/2 md:-translate-x-1/2">
+                <div class="text-2xl">💧</div><h3 class="font-bold text-teal-800">Nitrat (NO₃⁻)</h3><p class="text-sm text-teal-700">Ít độc</p>
+            </div>
+            <div class="text-3xl text-sky-500 block md:hidden">↓</div>
+            <p class="text-sm text-blue-600 block md:hidden">Được xử lý theo 2 cách</p>
+            <div class="w-full flex flex-col md:flex-row items-center justify-center gap-4 md:block">
+                <div id="node-gas" class="cycle-node bg-sky-100 border-sky-300 md:w-[150px] md:bottom-[20%] md:left-[10%]">
+                    <div class="text-2xl">💨</div><h3 class="font-bold text-sky-800">Khí Nitơ (N₂)</h3><p class="text-sm text-sky-700">Khử Nitrat</p>
+                </div>
+                <div id="node-plant" class="cycle-node bg-green-100 border-green-300 md:w-[160px] md:bottom-[5%] md:right-[10%]">
+                    <div class="text-2xl">🌿</div><h3 class="font-bold text-green-800">Thực vật hấp thụ</h3><p class="text-sm text-green-700">Đồng hóa</p>
+                </div>
+            </div>
+        </div>
+        
+        <p class="text-center mt-8 text-slate-500">💡 Nhấp vào một giai đoạn bất kỳ để xem chi tiết.</p>
+        <div class="text-center mt-8">
+            <button id="troubleshoot-btn" class="bg-gradient-to-r from-sky-500 to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
+                ✨ Trợ lý Xử lý Sự cố Bể cá
+            </button>
+        </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 opacity-0 invisible">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 md:p-8 w-full max-w-2xl transform scale-95 flex flex-col">
+            <div class="flex-shrink-0">
+                <div class="flex justify-between items-start">
+                    <h2 id="details-modal-title" class="text-2xl font-bold text-sky-700">Tiêu đề</h2>
+                    <button id="details-modal-close" class="text-3xl font-light leading-none text-slate-400 hover:text-slate-800">&times;</button>
+                </div>
+                <hr class="my-4">
+            </div>
+            <div class="modal-scrollable-content flex-grow">
+                <div id="details-modal-body" class="text-slate-700 space-y-3"></div>
+                <div class="mt-4 pt-4 border-t">
+                    <button id="explain-more-btn" class="w-full bg-slate-200 text-slate-800 font-semibold py-2 px-4 rounded-lg hover:bg-slate-300 transition">✨ Giải thích thêm với Gemini</button>
+                    <div id="gemini-explanation" class="mt-3 text-sm p-3 bg-blue-50 border border-blue-200 rounded-lg" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Troubleshooter Modal -->
+    <div id="troubleshoot-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 opacity-0 invisible">
+        <div class="modal-content bg-white rounded-lg shadow-xl p-6 md:p-8 w-full max-w-2xl transform scale-95 flex flex-col">
+            <div class="flex-shrink-0">
+                <div class="flex justify-between items-start">
+                    <h2 class="text-2xl font-bold text-sky-700">✨ Trợ lý Xử lý Sự cố</h2>
+                    <button id="troubleshoot-modal-close" class="text-3xl font-light leading-none text-slate-400 hover:text-slate-800">&times;</button>
+                </div>
+                <p class="text-slate-600 mt-1">Mô tả vấn đề bạn đang gặp phải với hồ cá của mình.</p>
+                <hr class="my-4">
+            </div>
+            <div class="modal-scrollable-content flex-grow">
+                <div class="space-y-4">
+                    <textarea id="problem-input" class="w-full h-24 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-sky-500" placeholder="Ví dụ: Nước hồ của tôi bị đục và có mùi tanh..."></textarea>
+                    <button id="get-advice-btn" class="w-full bg-sky-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-sky-700 transition flex items-center justify-center">
+                        Nhận lời khuyên từ Gemini
+                    </button>
+                    <div id="gemini-advice" class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-lg" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- Element References ---
+            const detailsModal = document.getElementById('details-modal');
+            const detailsModalTitle = document.getElementById('details-modal-title');
+            const detailsModalBody = document.getElementById('details-modal-body');
+            const detailsModalClose = document.getElementById('details-modal-close');
+            const troubleshootBtn = document.getElementById('troubleshoot-btn');
+            const troubleshootModal = document.getElementById('troubleshoot-modal');
+            const troubleshootModalClose = document.getElementById('troubleshoot-modal-close');
+            const getAdviceBtn = document.getElementById('get-advice-btn');
+            const problemInput = document.getElementById('problem-input');
+            const geminiAdviceContainer = document.getElementById('gemini-advice');
+            const explainMoreBtn = document.getElementById('explain-more-btn');
+            const geminiExplanationContainer = document.getElementById('gemini-explanation');
+
+            // --- Modal Data (unchanged) ---
+            const modalData = {
+                'node-waste': { title: 'Giai đoạn 1: Amoniac hóa', content: `<p>Đây là bước khởi đầu của chu trình, nơi các hợp chất nitơ hữu cơ được chuyển đổi thành amoniac (NH₃) hoặc ion amoni (NH₄⁺).</p><ul class="list-disc list-inside mt-2 space-y-1"><li><strong>Nguồn gốc:</strong> Chất thải của cá, thức ăn thừa, xác thực vật/động vật phân hủy.</li><li><strong>Quá trình:</strong> Vi khuẩn dị dưỡng và nấm phân hủy các hợp chất hữu cơ này.</li><li><strong>Phản ứng:</strong> <code class="bg-slate-100 p-1 rounded">Chất hữu cơ → NH₃ / NH₄⁺</code></li></ul>`},
+                'node-ammonia': { title: 'Chuyển hóa Amoniac thành Nitrit', content: `<p>Đây là bước đầu tiên của quá trình Nitrat hóa, được thực hiện bởi vi khuẩn hiếu khí.</p><ul class="list-disc list-inside mt-2 space-y-1"><li><strong>Vi khuẩn:</strong> Chi <em>Nitrosomonas</em>.</li><li><strong>Mô tả:</strong> Vi khuẩn oxy hóa amoniac để tạo năng lượng, sản phẩm phụ là Nitrit (NO₂⁻).</li><li><strong>Độc tính:</strong> Amoniac (NH₃) rất độc, đặc biệt khi pH > 7.</li><li><strong>Phương trình:</strong> <code class="bg-slate-100 p-1 rounded">2NH₄⁺ + 3O₂ → 2NO₂⁻ + 4H⁺ + 2H₂O</code></li></ul>`},
+                'node-nitrite': { title: 'Chuyển hóa Nitrit thành Nitrat', content: `<p>Đây là bước thứ hai của quá trình Nitrat hóa.</p><ul class="list-disc list-inside mt-2 space-y-1"><li><strong>Vi khuẩn:</strong> Chi <em>Nitrobacter</em>.</li><li><strong>Mô tả:</strong> Vi khuẩn <em>Nitrobacter</em> nhanh chóng oxy hóa Nitrit thành Nitrat (NO₃⁻).</li><li><strong>Độc tính:</strong> Nitrit (NO₂⁻) vẫn còn rất độc, gây ngạt cho cá.</li><li><strong>Phương trình:</strong> <code class="bg-slate-100 p-1 rounded">2NO₂⁻ + O₂ → 2NO₃⁻</code></li></ul>`},
+                'node-nitrate': { title: 'Giai đoạn cuối: Nitrat (NO₃⁻)', content: `<p>Nitrat là sản phẩm cuối cùng của quá trình nitrat hóa và ít độc hơn nhiều. Nó được loại bỏ khỏi hồ theo hai cách chính:</p><ul class="list-disc list-inside mt-2 space-y-1"><li><strong>Đồng hóa:</strong> Thực vật thủy sinh và tảo hấp thụ Nitrat làm dinh dưỡng.</li><li><strong>Khử Nitrat:</strong> Vi khuẩn yếm khí phân giải Nitrat thành khí Nitơ (N₂).</li></ul><p class="mt-2">Thay nước định kỳ cũng là một cách hiệu quả để giảm nồng độ Nitrat.</p>`},
+                'node-plant': { title: 'Đồng hóa bởi Thực vật', content: `<p>Đây là cách tự nhiên nhất để loại bỏ Nitrat (NO₃⁻) ra khỏi hồ.</p><ul class="list-disc list-inside mt-2 space-y-1"><li><strong>Cơ chế:</strong> Thực vật và tảo sử dụng Nitrat làm dinh dưỡng để phát triển.</li><li><strong>Phản ứng:</strong> <code class="bg-slate-100 p-1 rounded">NO₃⁻ → Sinh khối thực vật</code></li><li><strong>Lợi ích:</strong> Giúp kiểm soát Nitrat, hạn chế rêu hại.</li></ul>`},
+                'node-gas': { title: 'Khử Nitrat (Denitrification)', content: `<p>Đây là quá trình sinh học chuyển đổi Nitrat (NO₃⁻) trở lại thành khí Nitơ (N₂).</p><ul class="list-disc list-inside mt-2 space-y-1"><li><strong>Cơ chế:</strong> Vi khuẩn kỵ khí sử dụng Nitrat thay cho oxy để hô hấp.</li><li><strong>Điều kiện:</strong> Xảy ra ở vùng yếm khí như nền dày, vật liệu lọc xốp.</li><li><strong>Phương trình:</strong> <code class="bg-slate-100 p-1 rounded">2NO₃⁻ → N₂ (khí)</code></li></ul>`}
+            };
+
+            // --- Gemini API Call Function (unchanged) ---
+            async function callGeminiAPI(prompt, outputContainer, buttonToDisable) {
+                outputContainer.style.display = 'block';
+                outputContainer.innerHTML = '<div class="flex justify-center items-center"><div class="loader"></div><p class="ml-3 text-slate-500">Gemini đang suy nghĩ...</p></div>';
+                if (buttonToDisable) buttonToDisable.disabled = true;
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+                try {
+                    const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) { throw new Error(`API Error: ${response.statusText}`); }
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        let htmlText = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\n/g, '<br>');
+                        outputContainer.innerHTML = htmlText;
+                    } else {
+                        outputContainer.innerHTML = '<p class="text-red-500">Xin lỗi, không nhận được phản hồi hợp lệ từ Gemini.</p>';
+                    }
+                } catch (error) {
+                    console.error("Gemini API call failed:", error);
+                    outputContainer.innerHTML = `<p class="text-red-500">Đã xảy ra lỗi khi kết nối với Gemini. Vui lòng thử lại sau. Lỗi: ${error.message}</p>`;
+                } finally {
+                    if (buttonToDisable) buttonToDisable.disabled = false;
+                }
+            }
+
+            // --- Modal Control Functions (unchanged) ---
+            function showModal(modal) {
+                modal.classList.remove('invisible', 'opacity-0');
+                modal.querySelector('.modal-content').classList.remove('scale-95');
+            }
+            function hideModal(modal) {
+                modal.classList.add('opacity-0');
+                modal.querySelector('.modal-content').classList.add('scale-95');
+                setTimeout(() => modal.classList.add('invisible'), 300);
+            }
+
+            // --- Event Listeners (unchanged) ---
+            document.querySelectorAll('.cycle-node').forEach(node => {
+                node.addEventListener('click', () => {
+                    const data = modalData[node.id];
+                    if (!data) return;
+                    detailsModalTitle.textContent = data.title;
+                    detailsModalBody.innerHTML = data.content;
+                    geminiExplanationContainer.style.display = 'none';
+                    geminiExplanationContainer.innerHTML = '';
+                    explainMoreBtn.dataset.context = data.title;
+                    showModal(detailsModal);
+                });
+            });
+            detailsModalClose.addEventListener('click', () => hideModal(detailsModal));
+            troubleshootBtn.addEventListener('click', () => showModal(troubleshootModal));
+            troubleshootModalClose.addEventListener('click', () => hideModal(troubleshootModal));
+            getAdviceBtn.addEventListener('click', () => {
+                const problem = problemInput.value.trim();
+                if (!problem) {
+                    geminiAdviceContainer.style.display = 'block';
+                    geminiAdviceContainer.innerHTML = '<p class="text-orange-500">Vui lòng mô tả vấn đề bạn đang gặp phải.</p>';
+                    return;
+                }
+                const prompt = `Bạn là một chuyên gia hồ thủy sinh, chuyên sâu về chu trình nitrogen. Người dùng đang gặp sự cố với hồ cá của họ. Vấn đề của họ là: "${problem}". Dựa vào thông tin này, hãy giải thích các nguyên nhân có thể liên quan đến chu trình nitrogen, giai đoạn nào của chu trình có thể bị ảnh hưởng, và cung cấp các giải pháp khắc phục rõ ràng, từng bước một. Trả lời bằng tiếng Việt.`;
+                callGeminiAPI(prompt, geminiAdviceContainer, getAdviceBtn);
+            });
+            explainMoreBtn.addEventListener('click', (e) => {
+                const context = e.target.dataset.context;
+                if (!context) return;
+                const prompt = `Bạn là một giáo viên khoa học thân thiện. Hãy giải thích khái niệm "${context}" trong chu trình nitrogen của hồ thủy sinh một cách thật đơn giản, dễ hiểu cho người mới bắt đầu. Có thể dùng các ví dụ so sánh, ẩn dụ nếu cần. Trả lời bằng tiếng Việt.`;
+                callGeminiAPI(prompt, geminiExplanationContainer, explainMoreBtn);
+            });
+            [detailsModal, troubleshootModal].forEach(modal => {
+                modal.addEventListener('click', (e) => { if (e.target === modal) { hideModal(modal); } });
+            });
+            
+            // --- NEW: Dynamic Arrow Drawing Logic ---
+            function drawArrows() {
+                if (window.innerWidth < 768) {
+                    // Don't draw arrows on mobile
+                    document.getElementById('arrow-svg').style.display = 'none';
+                    return;
+                }
+                document.getElementById('arrow-svg').style.display = 'block';
+
+                const container = document.getElementById('visualization');
+                const containerRect = container.getBoundingClientRect();
+
+                function getCenter(nodeId) {
+                    const node = document.getElementById(nodeId);
+                    const nodeRect = node.getBoundingClientRect();
+                    return {
+                        x: nodeRect.left - containerRect.left + nodeRect.width / 2,
+                        y: nodeRect.top - containerRect.top + nodeRect.height / 2
+                    };
+                }
+
+                function drawCurve(arrowId, startNodeId, endNodeId, curveFactor = 0) {
+                    const arrow = document.getElementById(arrowId);
+                    const start = getCenter(startNodeId);
+                    const end = getCenter(endNodeId);
+                    
+                    const midX = (start.x + end.x) / 2;
+                    const midY = (start.y + end.y) / 2;
+                    
+                    const controlX = midX + (end.y - start.y) * curveFactor;
+                    const controlY = midY - (end.x - start.x) * curveFactor;
+                    
+                    arrow.setAttribute('d', `M ${start.x} ${start.y} Q ${controlX} ${controlY} ${end.x} ${end.y}`);
+                }
+
+                drawCurve('arrow-waste-ammonia', 'node-waste', 'node-ammonia', 0.2);
+                drawCurve('arrow-ammonia-nitrite', 'node-ammonia', 'node-nitrite', 0.2);
+                drawCurve('arrow-nitrite-nitrate', 'node-nitrite', 'node-nitrate', -0.2);
+                drawCurve('arrow-nitrate-plant', 'node-nitrate', 'node-plant', 0.2);
+                drawCurve('arrow-nitrate-gas', 'node-nitrate', 'node-gas', -0.2);
+            }
+
+            // Initial draw and redraw on resize
+            setTimeout(drawArrows, 100); // A small delay to ensure layout is stable
+            window.addEventListener('resize', drawArrows);
+        });
+    </script>
+</body>
+</html>
